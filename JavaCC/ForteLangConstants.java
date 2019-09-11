@@ -9,77 +9,33 @@ public interface ForteLangConstants {
   /** End of File. */
   int EOF = 0;
   /** RegularExpression Id. */
-  int COMPARATOR_OP = 1;
+  int NUMBER = 1;
   /** RegularExpression Id. */
-  int BOOLEAN_OP = 2;
+  int FLOATING_POINT_NUMBER = 2;
   /** RegularExpression Id. */
-  int SET_OP = 3;
+  int BOOLEAN = 3;
   /** RegularExpression Id. */
-  int OP = 4;
+  int OPENBRACKET = 4;
   /** RegularExpression Id. */
-  int CONCAT = 5;
+  int CLOSEBRACKET = 5;
   /** RegularExpression Id. */
-  int SELECT = 6;
+  int EQUALS = 6;
   /** RegularExpression Id. */
-  int CONTAINS = 7;
+  int SEMICOLON = 7;
   /** RegularExpression Id. */
-  int NUMBER = 8;
+  int OPENCBRACKET = 8;
   /** RegularExpression Id. */
-  int FLOATING_POINT_NUMBER = 9;
+  int CLOSECBRACKET = 9;
   /** RegularExpression Id. */
-  int BOOLEAN = 10;
+  int NUM = 10;
   /** RegularExpression Id. */
-  int STRING = 11;
+  int BOO = 11;
   /** RegularExpression Id. */
-  int REGEX_STRING = 12;
+  int COLON = 12;
   /** RegularExpression Id. */
-  int INCLUDE = 13;
+  int VAR_NAME = 13;
   /** RegularExpression Id. */
-  int IN = 14;
-  /** RegularExpression Id. */
-  int MATCH = 15;
-  /** RegularExpression Id. */
-  int OPENBRACKET = 16;
-  /** RegularExpression Id. */
-  int CLOSEBRACKET = 17;
-  /** RegularExpression Id. */
-  int OPENSBRACKET = 18;
-  /** RegularExpression Id. */
-  int CLOSESBRACKET = 19;
-  /** RegularExpression Id. */
-  int COMMA = 20;
-  /** RegularExpression Id. */
-  int EQUALS = 21;
-  /** RegularExpression Id. */
-  int SEMICOLON = 22;
-  /** RegularExpression Id. */
-  int OPENCBRACKET = 23;
-  /** RegularExpression Id. */
-  int CLOSECBRACKET = 24;
-  /** RegularExpression Id. */
-  int NUM = 25;
-  /** RegularExpression Id. */
-  int LST = 26;
-  /** RegularExpression Id. */
-  int SET = 27;
-  /** RegularExpression Id. */
-  int FUN = 28;
-  /** RegularExpression Id. */
-  int BOO = 29;
-  /** RegularExpression Id. */
-  int STR = 30;
-  /** RegularExpression Id. */
-  int COLON = 31;
-  /** RegularExpression Id. */
-  int VAR_NAME = 32;
-  /** RegularExpression Id. */
-  int FUNCTION_ARROW = 33;
-  /** RegularExpression Id. */
-  int GUARD_START = 34;
-  /** RegularExpression Id. */
-  int GUARD = 35;
-  /** RegularExpression Id. */
-  int GUARD_ARROW = 36;
+  int FUNCTION_ARROW = 14;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -89,47 +45,25 @@ public interface ForteLangConstants {
   /** Literal token values. */
   String[] tokenImage = {
     "<EOF>",
-    "<COMPARATOR_OP>",
-    "<BOOLEAN_OP>",
-    "<SET_OP>",
-    "<OP>",
-    "\"++\"",
-    "\".\"",
-    "\"?\"",
     "<NUMBER>",
     "<FLOATING_POINT_NUMBER>",
     "<BOOLEAN>",
-    "<STRING>",
-    "<REGEX_STRING>",
-    "\"include\"",
-    "\"in\"",
-    "\"match\"",
     "\"(\"",
     "\")\"",
-    "\"[\"",
-    "\"]\"",
-    "\",\"",
     "\"=\"",
     "\";\"",
     "\"{\"",
     "\"}\"",
     "\"num\"",
-    "\"list\"",
-    "\"set\"",
-    "\"func\"",
     "\"bool\"",
-    "\"str\"",
     "\":\"",
     "<VAR_NAME>",
     "\"->\"",
-    "\"|>\"",
-    "\"|\"",
-    "\"->>\"",
-    "<token of kind 37>",
-    "<token of kind 38>",
+    "<token of kind 15>",
+    "<token of kind 16>",
     "\"#[\"",
     "\"#[\"",
-    "<token of kind 41>",
+    "<token of kind 19>",
     "\"]#\"",
     "\"\\n\"",
     "\"\\r\"",

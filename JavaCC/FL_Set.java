@@ -2,7 +2,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @SuppressWarnings("serial")
-public class FL_Set extends LinkedHashMap<String, Object> implements Evaluatable {
+public class FL_Set extends LinkedHashMap<String, Object> {
 
 	public FL_Set() {
 		super();
@@ -27,8 +27,8 @@ public class FL_Set extends LinkedHashMap<String, Object> implements Evaluatable
 				FL_Set thisSet = new FL_Set(this);
 				FL_Set other = new FL_Set(set);
 				
-				thisSet = (FL_Set) Evaluator.evaluateFully(new Closure(thisSet));
-				other = (FL_Set) Evaluator.evaluateFully(new Closure(other));
+//				thisSet = (FL_Set) Evaluator.evaluateFully(new Closure(thisSet));
+//				other = (FL_Set) Evaluator.evaluateFully(new Closure(other));
 				
 				for(String key : this.keySet()) {
 					if(!set.containsKey(key)) {
@@ -45,29 +45,5 @@ public class FL_Set extends LinkedHashMap<String, Object> implements Evaluatable
 		}
 		return false;
 		
-	}
-
-	@Override
-	public boolean equalsWithScope(Object o, Scope scope) throws Exception {
-//		if(o instanceof FL_Set) {
-//			FL_Set set = (FL_Set) o;
-//			if(this.keySet().equals(set.keySet())) {
-//				for(String key : this.keySet()) {
-//					Object o1 = ForteLang.evaluate(scope, this.get(key));
-//					Object o2 = ForteLang.evaluate(scope, set.get(key));
-//					if(!o1.equals(o2)) {
-//						return false;
-//					}
-//				}
-//				return true;
-//			} else {
-//				System.out.println("Different keysets");
-//				return false;
-//			}
-//		} else {
-//			System.out.println("Not FL_Set");
-//			return false;
-//		}
-		return false;
 	}
 }
