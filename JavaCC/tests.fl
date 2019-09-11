@@ -1,5 +1,16 @@
 {
-    something = 2;
+    ## theNumber2 :: num
+    theNumber2 = 2;
 
-    somethingElse = (num -> num) x -> x;
+    ## id :: num -> num 
+    id = num x -> x;
+
+    ## somethingElse :: (num -> num) -> num
+    somethingElse = (num -> num) x -> x 2;
+
+    ## first :: num -> num -> num
+    first = num x -> num y -> x;
+
+    veryNestedTypes = (num->num->num) x -> (num->num) y -> x;
+
 }

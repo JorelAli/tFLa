@@ -186,7 +186,11 @@ Object value() throws Exception : { Token value; Object result; } {
 }
 
 void type() throws Exception : { } {
-	(<NUM> | <BOO>) | "(" type() "->" type() ")"//(LOOKAHEAD(2) "->" type())* 
+  	baseType() | ( <OPENBRACKET> baseType() (LOOKAHEAD(2) <FUNCTION_ARROW> type())+ <CLOSEBRACKET> )
+}
+
+void baseType() throws Exception : { } {
+	<NUM> | <BOO>
 }
 
 void abstraction() throws Exception : { } {
@@ -194,17 +198,13 @@ void abstraction() throws Exception : { } {
 }
 
 Object expression() throws Exception : { } {
-  	( LOOKAHEAD(3)
-
-  		( LOOKAHEAD(2) abstraction() | value() ) expression()
-    	// Abstraction
-	 	| abstraction()
+  	( 
 
 		// Variable
-		|  value()
-	
-		// Application
-//		| ( LOOKAHEAD(2) abstraction() | value() ) expression()
+		value() (LOOKAHEAD(2) expression())?
+
+    	// Abstraction
+		| abstraction() (LOOKAHEAD(2) expression())?
 
  	)
 	{ return null; }
