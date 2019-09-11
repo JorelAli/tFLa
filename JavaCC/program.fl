@@ -1,0 +1,19 @@
+include {
+    startsWith = expression:str -> string:str -> |>
+    | std.length expression > std.length string ->> false
+    | ->> match expression
+        | "" ->> true
+        | ->> |>
+            | head expression != head string ->> false
+            | ->> startsWith (tail expression) (tail string);
+
+    isLonger = expression:str -> string:str -> |>
+    | std.length expression > std.length string ->> false
+    | ->> true;
+
+
+} in
+
+std.foldl' (a -> b -> a + b) 0 [1, 2, 3] == 6
+
+## startsWith "he" "hollo"

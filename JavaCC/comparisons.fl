@@ -1,0 +1,3 @@
+include {
+    two = 2;
+} in [two, 2] == [2, 2]

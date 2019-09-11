@@ -1,0 +1,4 @@
+include {
+    x = 2;
+} in x + 2
+

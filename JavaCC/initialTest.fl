@@ -1,0 +1,197 @@
+include impure {
+    # Adds two parameters together
+    add = x -> y -> x + y;
+
+    # Square a number
+    square = x -> x * x;
+
+    numbers = 123.25 + 2;
+
+    # Lists
+    someList      = [x, y];
+    someOtherList = [x];
+    emptyList     = [];
+
+    # Example with guards
+    max = x -> y -> 
+        | x > y ->> x
+        | ->> y ;
+
+    # Set operations
+    union =      set1 -> set2 -> set1 /+ set2;
+    intersect =  set1 -> set2 -> set1 /- set2;
+    difference = set1 -> set2 -> set1 // set2;
+
+    ### Multiline comments
+    are supported as well! ###
+
+    # Constants
+    number2 = 2;
+
+    # Sets
+    emptySet = {};
+    simpleSet = {
+        hello = 2;
+        primes = [2, 3, 5, 7, 11];
+        subtract = x -> y -> x - y;
+    };
+
+    # Adds sets to scope of new sets
+    myFunctions = include {
+        myAdd = x -> y -> x + y;
+    } in {
+        add2 = myAdd;
+    };
+
+    # Adds sets to scope of expressions
+    myFunctions2 = include {
+        myAdd = x -> y -> x + y;
+    } in myAdd 2;
+
+    # Strings!
+    strings = "hello, world!" ++ "hi";
+
+    # And of course, they're natively multi-lined
+    multiLineString = "hello
+        world
+        what's 
+        up?";
+
+    # Inner function calls must be surrounded by brackets
+    reallyEmptySet = union (union {} {}) {};
+
+    somethingElse = include {
+        a = x -> y -> x + y;
+    } in [
+        (a b c), 
+        c, 
+        x, 
+        y, 
+        (x x)
+        ];
+
+    cons = a -> include {
+        x = head a;
+        xs = tail a;
+    } in [x] ++ xs;
+
+    guard = | x ->> y | ->> y ;
+
+    # Import an expression
+    a = import "./someFile.fl";
+    b = import blah;
+
+    # Access a set
+    set = {
+        hello = "hello";
+    }.hello;
+
+    # Check if an element exists in a set
+    set' = "hello" ? {
+        hello = "hello";
+    };
+
+    # Booleans!
+    blah = true || false;
+
+    impureSet'' = impure {
+        @val = "hello";
+    };
+
+    # Impure sets
+    impureSet = impure {
+        @b = run "echo 'hi'";
+    }.@b;
+
+    map = x -> ys -> x ys;
+
+    useMap = map (x -> y -> x + y);
+
+    myEnum = {| SUCCESS, FAILED, PARTIAL_SUCCESS |};
+
+    enumGuard = x -> match x
+        | blah.blah.SUCCESS ->> true
+        | myEnum.FAILED ->> false
+        | myEnum.PARTIAL_SUCCESS ->> false
+        | ->> false;
+
+    print = x -> @print "hello";
+
+    threeAdditions = a + b + c;
+
+    parenthesis = a * (b + c);
+
+    advancedList = [a, (a + b), (x -> | x ->> y | ->> x )];
+
+    otherStrings = "hi\" hello";
+
+    ###
+    anotherImpureSet = impure {};
+    ###
+
+    ###
+    invalidImpureSet = {
+        @blah = "hello";
+    };
+    ###
+
+    nestedSets = {
+        item1 = "hi";
+        item2 = {
+            item3 = "hello";
+            item4 = {
+                item5 = "hello there!";
+            };
+        };
+    };
+
+    awvew = "Hello, " ++ "world!";
+
+    guardTests = [] ++ | x == true ->> [] | ->> [x];
+
+    maxOr0 = x -> 
+    y ->
+        | x > y ->> x 
+        | ->> 
+            | y > x ->> y
+            | ->> 0;
+
+    otherTestCase = x -> x + 2;
+
+    importFile = import "./test2.fl";
+
+    someTestVariable' = 2;
+
+    theFirstTest = x -> y -> x + y;
+
+} in add 2 3 #maxOr0 1 (import (@print "./test2.fl") )
+
+###
+#include { 
+#    add = a -> b -> a + b;
+#    listOfOps = [add]; 
+#    op = head listOfOps; 
+#} in op 2 3
+
+#include {
+#    sum = acc -> max ->
+#        | max == 0 ->> acc
+#        | ->> sum (acc + max) (max - 1);
+#} in sum 0 10 
+
+###
+factorial 0 = 1
+factorial n = n * factorial (n - 1)
+###
+
+#include {
+#    factorial = input ->
+#        | input == 0 ->> 1
+#        | ->> input 
+#            * 
+#            (factorial (input - 1));
+#} in factorial 5
+
+#Should be something like 55
+
+###

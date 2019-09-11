@@ -1,0 +1,41 @@
+
+=== Parsing complete ===
+
+Program to evaluate: FL_IncludedSet[set={std=@import (and 1 argument), map=(f:function ->)}, expr=map (and 2 arguments)]
+[EVAL] Starting evaluation of Closure@15db9742(FL_IncludedSet), with scope {}
+[EVAL] Starting evaluation of Closure@6d06d69c(FL_FunctionCall), with scope {map=(f:function ->), std=@import (and 1 argument)}
+[EVAL] {map=(f:function ->), std=@import (and 1 argument)}
+[SECD] Starting SECD machine
+[SECD] Flattening SECD control
+[SECD] Adding to control:  a:any ->
+[EVAL] Starting evaluation of Closure@7852e922(FL_FunctionCall), with scope {map=(f:function ->), std=@import (and 1 argument)}
+[EVAL] {map=(f:function ->), std=@import (and 1 argument)}
+[SECD] Starting SECD machine
+[SECD] Initial control:  [a:any ->]
+[SECD] Popped:  a:any ->
+[SECD] SECD ended with  FL_Function
+[SECD] SECD scope was  {map=(f:function ->), std=@import (and 1 argument)}
+[EVAL] Starting evaluation of Closure@4e25154f(FL_Function), with scope {map=(f:function ->), std=@import (and 1 argument)}
+[SECD] FINISHED EVALUATING FC.BRACKETS
+[SECD] Initial control:  [Var[map], Closure@70dea4e, ap, [1], ap]
+[SECD] Popped:  Var[map]
+[SECD] control item to evaluate:  Var[map]
+[EVAL] Starting evaluation of Closure@5c647e05(FL_Var), with scope {map=(f:function ->), std=@import (and 1 argument)}
+[EVAL] Starting evaluation of Closure@33909752(FL_FunctionCall), with scope {map=(f:function ->), std=@import (and 1 argument)}
+[EVAL] {map=(f:function ->), std=@import (and 1 argument)}
+[SECD] Starting SECD machine
+[SECD] Initial control:  [f:function ->]
+[SECD] Popped:  f:function ->
+[SECD] SECD ended with  FL_Function
+[SECD] SECD scope was  {map=(f:function ->), std=@import (and 1 argument)}
+[EVAL] Starting evaluation of Closure@55f96302(FL_Function), with scope {map=(f:function ->), std=@import (and 1 argument)}
+[SECD] Evaluated control item as:  Closure@3d4eac69
+[SECD] Popped:  Closure@70dea4e
+[SECD] Popped:  ap
+[SECD] 
+[SECD] Applying... 
+[SECD] PotFunc: Closure@3d4eac69 (Closure)
+[EVAL] Starting evaluation of Closure@42a57993(Closure), with scope {map=(f:function ->), std=@import (and 1 argument)}
+[SECD] Evaluated invalid PotFunc to Closure@3d4eac69
+[SECD] Value:  Closure@70dea4e
+[SECD] Lambda:  null

@@ -1,0 +1,107 @@
+#[ The Standard Library ]#
+{
+    ##| ```
+    ##| genList :: (num -> b) -> num -> [b]
+    ##| ```
+    ##| Generates a list of size `num`, starting at 0
+    ##| For example, `genList (x -> x * x) 5` produces `[0, 1, 4, 9, 16]`
+    genList = f:func -> n:num -> match n
+        | 0 ->> []
+        | ->> genList f (n - 1) ++ [f n];
+
+    ##| ```
+    ##| map :: (a -> b) -> [a] -> [b]
+    ##| ```
+    ##| Maps each element from the input list using the function provided
+    ##| For example, `map (x -> x * x) [1, 2, 3]` produces `[1, 4, 9]`
+    map = f:func -> l:list -> match l
+        | [] ->> []
+        | ->> [f (head l)] ++ map f (tail l);
+
+    ##| ```
+    ##| all :: [bool] -> bool
+    ##| ```
+    ##| Checks whether each element in the list evaluates to `true`
+    all = l:list -> match l
+        | [] ->> true
+        | ->> |>
+            | head l ->> all (tail l)
+            | ->> false;
+
+    ##| ```
+    ##| any :: [bool] -> bool
+    ##| ```
+    ##| Checks whether any elements in the list evaluates to `true`
+    any = l:list -> match l 
+        | [] ->> false
+        | ->> |>
+            | head l ->> true
+            | ->> any (tail l);
+
+    ##| ```
+    ##| elemAt :: [a] -> num -> a
+    ##| ```
+    ##| Returns the element at the provided index, starting from 0
+    elemAt = l:list -> n:num -> |>
+        | assertWithErr (length l >= n) "Index provided is larger than the size of the list"
+            ->> match n 
+                | 0 ->> head l
+                | ->> elemAt (tail l) (n - 1)
+        | ->> 0;
+
+    ##| ```
+    ##| filter :: (a -> bool) -> [a] -> [a]
+    ##| ```
+    ##| Filters a list based on a provided predicate
+    filter = f:func -> l:list -> match l
+        | [] ->> []
+        | ->> (|>
+            | f (head l) ->> [head l]
+            | ->> []) ++ filter f (tail l);
+    
+    ##| ```
+    ##| length :: [a] -> num
+    ##| length :: str -> num
+    ##| ```
+    ##| Returns the length of a list or string
+    length = l -> match l
+        | "" ->> 0
+        | [] ->> 0
+        | ->> 1 + length (tail l);
+
+    ##| ```
+    ##| foldl' :: (b -> a -> a) -> a -> [b] -> a
+    ##| ```
+    ##| Performs a reduction on a list, given an initial starting value and a reduction function
+    foldl' = f:func -> acc -> l:list -> match l
+        | [] ->> acc
+        | ->> foldl' f (f (head l) acc) (tail l);
+
+    assertWithErr = s -> err -> match s
+        | true ->> true
+        | ->> @abort err;
+
+    ##| ```
+    ##| assert :: a -> bool
+    ##| assert :: a -> Fail
+    ##| ```
+    ##| Asserts whether an input statement is true. If not, aborts the program
+    assert = s -> assertWithErr s "Assertion failed";
+
+    math = {
+        max = x:num -> y:num -> |>
+            | x > y ->> x
+            | ->> y;
+        
+        min = x:num -> y:num -> |>
+            | x < y ->> x
+            | ->> y;
+
+        ## pow = input:num -> n:num -> match n
+        ##     | n == 0 ->> input
+        ##     | ->> input * (pow input (n - 1));
+
+        pi = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998;
+    };
+
+}

@@ -1,0 +1,86 @@
+# Comments
+
+# Attribute sets. These include recursive definitions by default
+{
+	attrName = attrValue;
+}
+
+# Lists
+[elem1, elem2, elem3]
+
+# Lambdas
+x -> y -> x + y
+
+# Guards
+x -> y ->
+	| x > y ->> x
+	| ->> y;
+
+	# This doesn't require whitespace:
+	x -> y -> | x > y ->> x | ->> y
+	
+	# Basically is syntactic sugar for the following:
+	x -> y -> 
+		(if x > y then x 
+		 else y)
+
+
+
+# Operations
+x + y
+x - y
+x * y
+x / y
+
+x /+ y # Set union
+x /- y # Set intersection
+x // y # Set difference
+
+x:xs # Cons for lists & strings
+
+# Let-in expressions
+include {
+	attrName1 = attrValue1;
+	attrName2 = attrValue2;
+} in # Insert code here
+
+### Example Code ###
+
+# Pow function
+{
+	pow = num -> power -> 
+		| isInt power ->> foldl mul 1 (listOf (val -> num) power)
+		| ->> error "myError"
+}
+
+# Adding elements of a list (the sum function)
+{
+	sum = list ->
+		| [] ->> 0
+		| ->> head list ++ tail list
+}
+
+# Builtin functions
+{
+	error = str -> Error
+	#error "hello"
+
+	foldl = (acc -> next -> result) -> initValue -> list -> result
+	#num -> foldl mul 1 (listOf num)
+
+	listOf = (* -> *) -> InfList
+
+	print = str -> UnsafeIO
+}
+
+### 
+	This is a Block comment 
+###
+
+
+### Sample program: ###
+
+include {
+	fib = first -> second -> acc -> first + second;
+} in 
+	print $ fib blah blah blah  

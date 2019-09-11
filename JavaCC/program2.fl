@@ -1,0 +1,18 @@
+include {
+    evaluate = input:str -> include {
+        firstChar = head input;   
+    } in match input
+        | '##.+' ->> "yes"
+        | ->> "no";
+
+    pow = input -> exponent -> include {
+        pow' = z -> size -> std.genList (x -> z) size;
+    } in std.foldl' (a -> b -> a * b) 1 (pow' input exponent);
+    
+
+} in ##std.foldl' (a -> b -> a * b) 1 (pow 2 3)
+
+pow 2 3
+
+
+##2 ++ 2 ##evaluate (@read (@input "Enter file name"))

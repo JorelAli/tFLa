@@ -1,0 +1,579 @@
+options {
+	STATIC = false;
+}
+
+PARSER_BEGIN(ForteLang)
+
+import java.util.LinkedList;
+import java.util.LinkedHashMap;
+import java.util.TreeMap;
+import java.util.HashMap;
+import java.util.ListIterator;
+import java.util.Stack;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.HashSet;
+
+import java.util.regex.Pattern;
+
+import java.io.FileInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.ByteArrayInputStream;
+
+import java.nio.file.Files;
+
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+public class ForteLang {
+	
+	/** Static fields */
+	static String fileName;
+	static boolean impureMode = false;
+	static boolean silent = false;
+	static boolean maxprecision = false;
+	static boolean LOGGING_ENABLE = true;
+	static Scanner globalScanner = null;
+	public static int innerComments = 0;
+	
+	final static boolean GENERATE_DOCS = false;
+	final static boolean PRINT_DOCS = false;
+	final static boolean TO_MARKDOWN_FILE = true;
+	final static String MARKDOWN_FILE = "docs.md";
+	static TreeMap<String, String> docs = new TreeMap<String, String>();
+
+	static Scanner getGlobalScanner() {
+		if(globalScanner == null) {
+			globalScanner = new Scanner(System.in);
+		}
+		return globalScanner;
+	}
+
+	static String prettifyOutput(Object result) {
+		if(result instanceof String) {
+			return "\"" + result + "\"";
+		} 
+		if(result instanceof BigDecimal && !maxprecision) {
+		  	BigDecimal d = (BigDecimal) result;
+			if(d.stripTrailingZeros().scale() > 0) {
+				result = d.doubleValue();
+			}
+		}
+		return String.valueOf(result);
+	}
+
+	/** Main method */
+	public static void main(String[] args) throws Exception {
+	  	boolean replMode = false;
+	  	Set<String> arguments = new HashSet<String>();
+	  	for(String str : args) {
+		    if(str.startsWith("-")) {
+				arguments.add(str.substring(1, str.length()));
+		    }
+	  	}
+
+		if(arguments.contains("repl")) {
+			replMode = true;
+		}
+		if(arguments.contains("debug")) {
+		    LOGGING_ENABLE = true;
+			Print.SECD = true;
+			Print.EVAL = true;
+			Print.OPEX = true;
+		} else {
+		    LOGGING_ENABLE = false;
+			Print.SECD = false;
+			Print.EVAL = false;
+			Print.OPEX = false;
+		}
+		if(arguments.contains("impure")) {
+			impureMode = true;
+		}
+		if(arguments.contains("silent")) {
+			silent = true;
+		}
+		if(arguments.contains("maxprecision")) {
+			maxprecision = true;
+		}
+	  	
+	  	if(args.length - arguments.size() < 1 && !replMode) {
+	  	  	System.out.println("Usage: java ForteLang <File>");
+	  	  	System.out.println("Flags:");
+	  	  	System.out.println("  -repl   - Start the ForteLang repl");
+	  	  	System.out.println("  -debug  - Output all evaluation debug messages");
+	  	  	System.out.println("  -impure - Evaluate using impure functions (e.g. @import or @print)");
+	  	  	System.out.println("  -silent - Do not output evaluation result to the console");
+			return;
+	  	}
+
+	  	if(replMode) {
+			LOGGING_ENABLE = false;
+			new Repl().start();
+	  	} else {
+			File file = new File(args[0]);
+		  	fileName = file.getName();
+			try {
+			  	/* Run the parser */
+	
+				Object result = new ForteLang(new FileInputStream(file)).input(new Scope());
+
+				if(!silent) {
+					if(result instanceof Closure) {
+						Closure c = (Closure) result;
+						System.out.println("Closure of: " + c.getExpression() + ", with scope " + c.getScope());
+					} else {
+						System.out.println(prettifyOutput(result));
+					}
+				}
+				
+
+				if(GENERATE_DOCS) {
+					if(PRINT_DOCS) {
+						System.out.println();
+						System.out.println("=== Generated documentation ===");
+						for(String key : docs.keySet()) {
+							System.out.println("### `" + key + "`");
+							for(String str : docs.get(key).split("\n")) {
+								System.out.println(str.trim());
+							}
+							System.out.println();
+						}
+					}
+					if(TO_MARKDOWN_FILE) {
+						LinkedList<String> generatedDocumentation = new LinkedList<String>();
+
+						for(String key : docs.keySet()) {
+							generatedDocumentation.add("### `" + key + "`");
+							for(String str : docs.get(key).split("\n")) {
+								generatedDocumentation.add(str.trim());
+							}
+							generatedDocumentation.add("");
+						}
+
+						File md = new File(MARKDOWN_FILE);
+						file.createNewFile();
+						Files.write(md.toPath(), generatedDocumentation);
+					}
+				}
+				
+			} catch(Exception e) {
+			  	e.printStackTrace();
+			  	return;
+			}
+	  	}
+	}
+
+	/** Helper functions */
+
+	static String location(Token token) {
+ 		return " (Line " + token.beginLine + " in " + fileName + ")";
+	}
+
+	static String parseString(Token str) {
+		return str.image.substring(1, str.image.length() - 1);
+	}	
+}
+
+PARSER_END(ForteLang)
+
+//Operators
+TOKEN : { < COMPARATOR_OP : ">" | "<" | "<=" | ">=" | "==" | "!=" > }
+TOKEN : { < BOOLEAN_OP : "||" | "&&" > }
+TOKEN : { < SET_OP : "/+" | "/-" | "//" > }
+TOKEN : { < OP : "+" | "*" | "-" | "/" | "%" > }
+TOKEN : { < CONCAT : "++" > }
+TOKEN : { < SELECT : "." > }
+TOKEN : { < CONTAINS : "?" > }
+
+//Data types
+TOKEN : { < NUMBER : ("-")? (["0"-"9"])+ > }
+TOKEN : { < FLOATING_POINT_NUMBER : <NUMBER>"."<NUMBER> > }
+TOKEN : { < BOOLEAN : "true" | "false" > } 
+TOKEN : { < STRING : "\"" ("\\" ~[] | ~["\"", "\\"])* "\"" >}
+TOKEN : { < REGEX_STRING : "'" ("\\" ~[] | ~["'", "\\"])* "'" >}
+
+//Keywords
+TOKEN : { < INCLUDE : "include" > }
+TOKEN : { < IN : "in" > }
+TOKEN : { < MATCH : "match" > }
+
+//Brackets
+TOKEN : { < OPENBRACKET : "(" > }
+TOKEN : { < CLOSEBRACKET : ")" > }
+
+//Lists
+TOKEN : { < OPENSBRACKET : "[" > }
+TOKEN : { < CLOSESBRACKET : "]" > }
+TOKEN : { < COMMA : "," > }
+
+////Enums
+//TOKEN : { < CAPS : (["A"-"Z", "_"])+ > }
+//TOKEN : { < ENUM_OPEN : " {|" > }
+//TOKEN : { < ENUM_CLOSE : "|}" > }
+
+//Sets
+TOKEN : { < EQUALS : "=" > }
+TOKEN : { < SEMICOLON : ";" > }
+TOKEN : { < OPENCBRACKET : "{" > }
+TOKEN : { < CLOSECBRACKET : "}" > }
+
+//Types
+TOKEN : { < NUM : "num" > } 
+TOKEN : { < LST : "list" > }
+TOKEN : { < SET : "set" > }
+TOKEN : { < FUN : "func" > }
+TOKEN : { < BOO : "bool" > }
+TOKEN : { < STR : "str" > }
+TOKEN : { < COLON : ":" > }
+
+//Functions
+TOKEN : { < VAR_NAME : ["A"-"Z", "a"-"z", "@", "_"] (["A"-"Z", "a"-"z", "0"-"9", "_"])* (["\'"])* > }
+TOKEN : { < FUNCTION_ARROW : "->" > }
+TOKEN : { < GUARD_START : "|>" > }
+TOKEN : { < GUARD : "|" > }
+TOKEN : { < GUARD_ARROW : "->>" > }
+
+//Comments
+SPECIAL_TOKEN : { < "##|" (~["\r", "\n"])* > }
+SKIP : { < "##" (~["\r", "\n"])* > }
+SKIP : { "#[" : BlockComment }
+<BlockComment> SKIP : { < "#[" > { ForteLang.innerComments++; } }
+<BlockComment> MORE : { < ~[] > }
+<BlockComment> SKIP : { < "]#" >
+	{
+  		if(ForteLang.innerComments == 0) {
+	  	    SwitchTo(DEFAULT);
+	  	} else {
+  	    	ForteLang.innerComments--;
+  		}
+	}
+}
+
+//Whitespace
+SKIP : { "\n" | "\r" | " " | "\t" }
+
+/** Main endpoint */
+Object input(Scope initScope) throws Exception : { Object expression = null; Token eof; } {
+	try { 
+		expression = enclosedExpression()
+	} catch(ParseException e) { /*Exceptions.EMPTY_PROGRAM(location(e.currentToken));*/ }
+	<EOF>
+	
+	{
+		if(LOGGING_ENABLE) {
+			System.out.println();
+			System.out.println("=== Parsing complete ===");
+			System.out.println();
+			System.out.println("Program to evaluate: " + expression);
+		}
+
+		if(expression == null) {
+			throw new Exception("Empty program found");
+		}
+
+	    Object result = null;
+
+		try {
+			result = Evaluator.evaluate(new Closure(initScope, expression));
+		} catch(StackOverflowError e) {
+			System.out.println("Infinite recursion encountered");
+			System.exit(0);
+		}
+
+		if(result instanceof Closure) {
+		  	Closure closure = (Closure) result;		  
+			result = Evaluator.evaluateFully(closure);
+		}
+
+		if(LOGGING_ENABLE) {
+			System.out.println();
+		    System.out.println("== Evaluation complete ==");
+			if(result instanceof Closure) {
+			  	Closure closure = (Closure) result;
+			  	System.out.println(closure + "(" + closure.getExpression().getClass().getSimpleName() + "), with scope " + closure.getScope());
+			} else {
+				System.out.println(result);
+			}
+			System.out.println();
+		}
+		
+	    return result;
+  	}
+}
+
+Token anyOperator() throws Exception : { Token op; } {
+	  op = <BOOLEAN_OP>    { return op; }
+	| op = <OP>            { return op; }
+	| op = <SET_OP>        { return op; }
+	| op = <COMPARATOR_OP> { return op; }
+	| op = <CONCAT>        { return op; }
+	| op = <CONTAINS>      { return op; }
+	| op = <SELECT>        { return op; }
+}
+
+Type anyType() throws Exception : { Token type; } {
+	(
+	    type = <NUM>
+	  | type = <LST>
+	  | type = <SET>
+	  | type = <FUN>
+	  | type = <BOO>
+	  | type = <STR>
+	)
+	{
+		switch(token.kind) {
+			case ForteLangConstants.NUM:
+				return Type.NUMBER;
+			case ForteLangConstants.LST:
+				return Type.LIST;
+			case ForteLangConstants.SET:
+				return Type.SET;
+			case ForteLangConstants.FUN:
+				return Type.FUNCTION;
+			case ForteLangConstants.BOO:
+				return Type.BOOLEAN;
+			case ForteLangConstants.STR:
+				return Type.STRING;
+			default:
+				return Type.ANY;
+		}
+	}
+	
+}
+
+FL_IncludedSet includedSet() throws Exception : { FL_Set set; Object expression; } {
+	<INCLUDE>
+	set = set()
+	<IN>
+	expression = enclosedExpression()
+	{ return new FL_IncludedSet(set, expression); }
+}
+
+FL_Set set() throws Exception : { FL_Set set; Token setDeclaration; Token attrName; Object attrValue; } {
+  	{ set = new FL_Set(); }
+	setDeclaration = <OPENCBRACKET>
+	(
+	  	attrName = <VAR_NAME>
+	  	{
+	  		if (attrName.specialToken != null && GENERATE_DOCS) {
+			  	Token tmp_t = attrName.specialToken;
+			  	while (tmp_t.specialToken != null) tmp_t = tmp_t.specialToken;
+			    // The above line walks back the special token chain until it
+			    // reaches the first special token after the previous regular
+			    // token.
+			    StringBuilder docBuilder = new StringBuilder();
+			  	while (tmp_t != null) {
+			  	  	String documentation = tmp_t.image;
+			    	docBuilder.append(documentation.substring(3, documentation.length()));
+			    	docBuilder.append("\n");
+			    	tmp_t = tmp_t.next;
+			  	}
+			  	docs.put(attrName.image, docBuilder.toString());
+			    // The above loop now walks the special token chain in the forward
+			    // direction printing them in the process.
+			}
+
+			if(set.keySet().contains(attrName.image)) {
+				Exceptions.ITEM_IN_SET(attrName.image, location(attrName));
+			}
+	  	}
+	  	<EQUALS>
+	  	attrValue = enclosedExpression()
+	  	<SEMICOLON>
+	  	{ set.put(attrName.image, attrValue); }
+	)*
+	<CLOSECBRACKET>
+	{ return set; }
+}
+
+FL_Function lambda() throws Exception : { Token paramName; Object innerExpression; Type type; } {
+  	{ type = Type.ANY; }
+	(
+		(
+			paramName = <VAR_NAME>(<COLON> type = anyType())?
+			<FUNCTION_ARROW>
+			innerExpression = enclosedExpression()
+		)
+		|
+		(
+			<OPENBRACKET>
+			paramName = <VAR_NAME>(<COLON> type = anyType())?
+			<FUNCTION_ARROW>
+			innerExpression = enclosedExpression()
+			<CLOSEBRACKET>
+		)
+	)
+	  
+	{ return new FL_Function(new FL_TypedParam(paramName.image, type), innerExpression); }
+}
+
+FL_List list() throws Exception : { FL_List list; Object nextItem; } {
+	{ list = new FL_List(); }
+
+  	//Open bracket
+  	<OPENSBRACKET> (
+  	  
+		//Empty list
+		<CLOSESBRACKET> { return list; }
+		|
+		//Non-empty list
+		nextItem = enclosedExpression()
+		{ list.add(nextItem); }
+		
+		(
+		    <COMMA>
+			nextItem = enclosedExpression()
+			{ list.add(nextItem); }
+		)*
+		<CLOSESBRACKET>
+	)
+	{ return list; }
+}
+
+BigDecimal number() throws Exception : { Token value; } {
+	  value = <NUMBER> 				  { return new BigDecimal(value.image); }
+	| value = <FLOATING_POINT_NUMBER> { return new BigDecimal(value.image); }
+}
+
+/** Expressions */
+Object enclosedExpression() throws Exception : { Object result;  } {
+	LOOKAHEAD(3)
+	  result = opExpression(false)           { return result; }
+	| result = bracketedEnclosedExpression() { return result; }
+}
+
+Object bracketedEnclosedExpression() throws Exception : { Object result;  } {
+	<OPENBRACKET>
+	result = opExpression(true) 
+	<CLOSEBRACKET>
+	{ return result; }
+}
+
+Object expression(boolean bracketed) throws Exception : { Object result; Token token; } {
+  	LOOKAHEAD(3)
+  	result = functionCall(bracketed) { return result; }
+    | result = set() { return result; }
+	| result = lambda() { return result; }
+	| result = includedSet() { return result; }
+	| result = list() { return result; }
+	| result = number() { return result; }
+	| result = guards() { return result; }
+	| result = match() { return result; }
+	| token = <STRING> { return new FL_String(parseString(token)); }
+	| token = <REGEX_STRING> { return Pattern.compile(parseString(token)); }
+	| token = <BOOLEAN> { return Boolean.parseBoolean(token.image); }
+}
+
+Object opExpression(boolean bracketed) throws Exception : {
+  Object leftExpr;
+  Object rightExpr = null;
+  Token operator = null;
+} {
+  
+  	(
+  	  LOOKAHEAD(3)
+  	  leftExpr = expression(bracketed)
+  	  | <OPENBRACKET> leftExpr = opExpression(true) <CLOSEBRACKET>
+  	)
+	(
+	  LOOKAHEAD(2)
+	  operator = anyOperator()
+	  rightExpr = enclosedExpression()
+	)?
+	
+	{
+		if(operator != null) {
+			return new FL_OpExpr(leftExpr, rightExpr, operator, bracketed);
+		} else {
+			return leftExpr;
+		}
+	}
+}
+
+FL_FunctionCall functionCall(boolean bracketed) throws Exception : { FL_FunctionCall result; Object param; Token varName; Object lambda; } {
+  	{
+		varName = null;
+		lambda = null;
+  	}
+  	(
+  	  LOOKAHEAD(2)
+  	  lambda = lambda()
+  	  | varName = <VAR_NAME> 
+  	)
+  	{
+  	   	result = new FL_FunctionCall();
+  	   	if(bracketed) {
+			result.addBrackets();
+  	   	}
+  	   	if(varName != null) { 
+			result.setInitFunction(new FL_Var(varName.image));
+		} else {
+			result.setInitFunction(lambda);
+		}
+  	}
+	(
+	  	LOOKAHEAD(2) 
+	  	(
+		  LOOKAHEAD(3)
+		  param = bracketedEnclosedExpression()
+		|  param = expression(bracketed)
+		)
+	  { result.getArguments().add(param); }
+	)*
+	{ return result; }
+}
+
+FL_Guards guards() throws Exception : {
+	FL_Guards guards = new FL_Guards();
+	Object predicate;
+	Object expression;
+} {
+  	<GUARD_START>
+	(
+	  	LOOKAHEAD(2)
+	  	<GUARD>
+		predicate = enclosedExpression()
+		<GUARD_ARROW>
+		expression = enclosedExpression()
+		{ guards.addStatement(predicate, expression); }
+	)+
+	<GUARD>
+	<GUARD_ARROW>
+	expression = enclosedExpression()
+	{
+	  guards.setFinalStatement(expression);
+	  return guards;
+	}
+}
+
+FL_Match match() throws Exception : {
+	FL_Match match;
+	Object statement;
+  
+	Object predicate;
+	Object expression;
+	Object finalExpression;
+} {
+	<MATCH>
+	statement = enclosedExpression()
+	{ match = new FL_Match(statement); }
+	(
+	  	LOOKAHEAD(2)
+	  	<GUARD>
+		predicate = enclosedExpression()
+		<GUARD_ARROW>
+		expression = enclosedExpression()
+		{ match.addStatement(predicate, expression); }
+	)+
+	<GUARD>
+	<GUARD_ARROW>
+	expression = enclosedExpression()
+	{
+	  match.setFinalStatement(expression);
+	  return match;
+	}
+}
