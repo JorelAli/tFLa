@@ -154,8 +154,12 @@ Object input() throws Exception : { Object expression = null; Token eof; } {
 	{
 		System.out.println("=== Parsing complete ===");
 		System.out.println();
-//		System.out.println("Program to evaluate: " + expression);
 
+		FL_Set set = (FL_Set) expression;
+		for(String key : set.keySet()) {
+			System.out.println(key + " :: " + Inference.infer(set.get(key)));
+		}
+		
 		return null;
   	}
 }
@@ -182,30 +186,49 @@ BigDecimal number() throws Exception : { Token value; } {
 Object value() throws Exception : { Token value; Object result; } {
 	result = number() { return result; }
 	| value = <BOOLEAN> { return Boolean.parseBoolean(value.image); }
-	| value = <VAR_NAME> { return value.image; }
+	| value = <VAR_NAME> { return new FL_Var(value.image); }
 }
 
-void type() throws Exception : { } {
-  	baseType() | ( <OPENBRACKET> baseType() (LOOKAHEAD(2) <FUNCTION_ARROW> type())+ <CLOSEBRACKET> )
+FL_Type type() throws Exception : { FL_Type type; LinkedList<FL_Type> types; } {
+  	(  	  type = baseType()
+  	  | (
+  	    	<OPENBRACKET>
+  	    	{ types = new LinkedList<FL_Type>(); }
+  	    	type = baseType()
+  	    	{ types.add(type); }
+  	    	(LOOKAHEAD(2)
+  	    		<FUNCTION_ARROW>
+  	    		type = type()
+  	    		{ types.add(type); }
+  	    	)+
+  	    	{ type = new FL_Type(types); }
+  	    	<CLOSEBRACKET>
+  	    )
+  	)
+  	{ return type; }
 }
 
-void baseType() throws Exception : { } {
-	<NUM> | <BOO>
+FL_Type baseType() throws Exception : { Token type; } {
+	(	  type = <NUM>
+	  | type = <BOO>
+	)
+	{ return new FL_Type(type); } 
 }
 
-void abstraction() throws Exception : { } {
+Object abstraction() throws Exception : { } {
 	type() <VAR_NAME> <FUNCTION_ARROW> expression()
+	{ return null; }
 }
 
-Object expression() throws Exception : { } {
+Object expression() throws Exception : { Object result; } {
   	( 
 
 		// Variable
-		value() (LOOKAHEAD(2) expression())?
+		result = value() (LOOKAHEAD(2) expression())?
 
     	// Abstraction
-		| abstraction() (LOOKAHEAD(2) expression())?
+		| result = abstraction() (LOOKAHEAD(2) expression())?
 
  	)
-	{ return null; }
+	{ return result; }
 }
